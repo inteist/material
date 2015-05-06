@@ -65,7 +65,11 @@ public class Dialog extends android.app.Dialog{
     private final Handler mHandler = new Handler();
     private final Runnable mDismissAction = new Runnable() {
         public void run() {
-            Dialog.super.dismiss();
+            //dirty fix for java.lang.IllegalArgumentException: View not attached to window manager
+            try {
+                Dialog.super.dismiss();
+            }
+            catch(IllegalArgumentException ex){}
         }
     };
 
@@ -75,12 +79,13 @@ public class Dialog extends android.app.Dialog{
     private boolean mCancelable = true;
     private boolean mCanceledOnTouchOutside = true;
 
+    public static final int TITLE = ViewUtil.generateViewId();
     public static final int ACTION_POSITIVE = ViewUtil.generateViewId();
     public static final int ACTION_NEGATIVE = ViewUtil.generateViewId();
     public static final int ACTION_NEUTRAL = ViewUtil.generateViewId();
 
     public Dialog(Context context) {
-        this(context, 0);
+        this(context, R.style.Material_App_Dialog_Light);
     }
 
 
@@ -116,6 +121,7 @@ public class Dialog extends android.app.Dialog{
         mCardView.setPreventCornerOverlap(false);
         mCardView.setUseCompatPadding(true);
 
+        mTitle.setId(TITLE);
         mTitle.setPadding(mContentPadding, mContentPadding, mContentPadding, mContentPadding - mActionPadding);
         mPositiveAction.setId(ACTION_POSITIVE);
         mPositiveAction.setPadding(mActionPadding, 0, mActionPadding, 0);
@@ -958,7 +964,9 @@ public class Dialog extends android.app.Dialog{
 
         protected Dialog mDialog;
 
-        public Builder(){}
+        public Builder(){
+            this(R.style.Material_App_Dialog_Light);
+        }
 
         public Builder(int styleId){
             mStyleId = styleId;
@@ -994,14 +1002,24 @@ public class Dialog extends android.app.Dialog{
             return this;
         }
 
-        @Override
-        public void onPositiveActionClicked(DialogFragment fragment) {}
+        public Dialog getDialog(){
+            return mDialog;
+        }
 
         @Override
-        public void onNegativeActionClicked(DialogFragment fragment) {}
+        public void onPositiveActionClicked(DialogFragment fragment) {
+            fragment.dismiss();
+        }
 
         @Override
-        public void onNeutralActionClicked(DialogFragment fragment) {}
+        public void onNegativeActionClicked(DialogFragment fragment) {
+            fragment.dismiss();
+        }
+
+        @Override
+        public void onNeutralActionClicked(DialogFragment fragment) {
+            fragment.dismiss();
+        }
 
         @Override
         public Dialog build(Context context) {
@@ -1015,12 +1033,28 @@ public class Dialog extends android.app.Dialog{
             if(mContentViewId != 0)
                 mDialog.contentView(mContentViewId);
 
+            onBuildDone(mDialog);
+
             return mDialog;
         }
 
+        /**
+         * Get a appropriate Dialog instance will be used for styling later.
+         * Child class should override this function to return appropriate Dialog instance.
+         * If you want to apply styling to dialog, or get content view, you should do it in {@link #onBuildDone(Dialog)}
+         * @param context A Context instance.
+         * @param styleId The resourceId of Dialog's style.
+         * @return A Dialog instance will be used for styling later.
+         */
         protected Dialog onBuild(Context context, int styleId){
             return new Dialog(context, styleId);
         }
+
+        /**
+         * This function will be called after Builder done apply styling to Dialog.
+         * @param dialog The Dialog instance.
+         */
+        protected void onBuildDone(Dialog dialog){}
 
         protected Builder(Parcel in) {
             mStyleId = in.readInt();
@@ -1033,8 +1067,16 @@ public class Dialog extends android.app.Dialog{
             onReadFromParcel(in);
         }
 
+        /**
+         * Child class should override this function and read back any saved attributes.
+         * All read methods should be called after super.onReadFromParcel() call to keep the order.
+         */
         protected void onReadFromParcel(Parcel in){}
 
+        /**
+         * Child class should override this function and write down all attributes will be saved.
+         * All write methods should be called after super.onWriteToParcel() call to keep the order.
+         */
         protected void onWriteToParcel(Parcel dest, int flags){}
 
         @Override

@@ -41,7 +41,7 @@ public class TimePickerDialog extends Dialog{
     }
 
     public TimePickerDialog(Context context) {
-        super(context);
+        super(context, R.style.Material_App_Dialog_TimePicker_Light);
     }
 
     public TimePickerDialog(Context context, int style) {
@@ -156,7 +156,6 @@ public class TimePickerDialog extends Dialog{
             mPmView = new CircleCheckedTextView(context);
             mTimePicker = new TimePicker(context);
 
-            mTimePicker.set24Hour(isDefault24Hour());
             mTimePicker.setPadding(mContentPadding, mContentPadding, mContentPadding, mContentPadding);
             mTimePicker.setOnTimeChangedListener(this);
             mAmView.setCheckedImmediately(mIsAm);
@@ -169,13 +168,6 @@ public class TimePickerDialog extends Dialog{
             addView(mPmView);
 
             setWillNotDraw(false);
-        }
-
-        private boolean isDefault24Hour(){
-            SimpleDateFormat format = (SimpleDateFormat)SimpleDateFormat.getTimeInstance(SimpleDateFormat.FULL);
-            String pattern = format.toLocalizedPattern();
-
-            return pattern.indexOf("k") >= 0;
         }
 
         public void applyStyle(int resId){
@@ -550,14 +542,18 @@ public class TimePickerDialog extends Dialog{
 
     public static class Builder extends Dialog.Builder implements OnTimeChangedListener {
 
-        private int mHour;
-        private int mMinute;
+        protected int mHour;
+        protected int mMinute;
 
         public Builder(){
-            super();
+            super(R.style.Material_App_Dialog_TimePicker_Light);
             Calendar cal = Calendar.getInstance();
             mHour = cal.get(Calendar.HOUR_OF_DAY);
             mMinute = cal.get(Calendar.MINUTE);
+        }
+
+        public Builder(int hourOfDay, int minute){
+            this(R.style.Material_App_Dialog_TimePicker_Light, hourOfDay, minute);
         }
 
         public Builder(int styleId, int hourOfDay, int minute){
@@ -574,6 +570,14 @@ public class TimePickerDialog extends Dialog{
         public Builder minute(int minute){
             mMinute = minute;
             return this;
+        }
+
+        public int getHour(){
+            return mHour;
+        }
+
+        public int getMinute(){
+            return mMinute;
         }
 
         @Override

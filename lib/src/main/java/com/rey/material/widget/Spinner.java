@@ -39,6 +39,7 @@ import android.widget.SpinnerAdapter;
 import com.rey.material.R;
 import com.rey.material.drawable.ArrowDrawable;
 import com.rey.material.drawable.DividerDrawable;
+import com.rey.material.drawable.RippleDrawable;
 import com.rey.material.util.ThemeUtil;
 
 import java.lang.reflect.Field;
@@ -278,6 +279,10 @@ public class Spinner extends FrameLayout {
 	public int getSelectedItemPosition(){
 		return mSelectedPosition;
 	}
+
+    public Object getSelectedItem(){
+        return mAdapter == null ? null : mAdapter.getItem(mSelectedPosition);
+    }
 		
 	public SpinnerAdapter getAdapter() {
 		return mAdapter;
@@ -384,6 +389,15 @@ public class Spinner extends FrameLayout {
 
         if (mPopup != null && mPopup.isShowing())
             mPopup.dismiss();        
+    }
+
+    @Override
+    public void setBackgroundDrawable(Drawable drawable) {
+        Drawable background = getBackground();
+        if(background instanceof RippleDrawable && !(drawable instanceof RippleDrawable))
+            ((RippleDrawable) background).setBackgroundDrawable(drawable);
+        else
+            super.setBackgroundDrawable(drawable);
     }
 
     @Override
